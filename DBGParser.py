@@ -10,7 +10,7 @@ from datetime import datetime
 
 # Made by Cpt-Dingus/Meti#7771
 # Helped on by members of the r/TechSupport Discord server
-print("v1.1.1 | 20-08-2022")
+print("v1.1.2 | 20-08-2022")
 
 token = cfg.TOKEN
 channel = ""
@@ -21,16 +21,14 @@ total_dump_no = 0
 
 
 # Lowers the size of the windbg output to 1700 characters
-EXCLUDES = ['Executable search', 'Kernel Base', 'Loading unloaded' 'Kernel base', '******', 'Bugcheck Analysis', '*    ', 'Loading User',    
-           'Loading Unloaded', 'Opened log file', 'Microsoft', 'Copyright', 'Loading Dump', 'Mini Kernel Dump', 'Symbol search', 
-             'NatVis','Windows 10', 'Product:', 'Edition', 'Machine', 'Debug session', 'System Uptime', 'ERROR_CODE', 'Arg2', 'Arg3', 'Arg4', 
-             'Loading Kernel', '.......................', '!analyze', 'KEY', 'Key', 'Value', 'BUGCHECK', 'kd>', 
-             'TRAP', '.trap', 'NOTE:', 'Some register values', 'rax', 'rdx', 'rip', 'r1', 'r2', 'r3', 'Kernel base', 
-             'r4', 'r6', 'r7', 'r8', 'r9', 'r10', 'r11', 'r12', 'r13', 'r14', 'r15', 'r16', 'iop', 'scope', '......', 
-             'exr', 'ExceptionAddress', 'ExceptionCode', 'ExceptionFlags', 'NumberParameters', 'Parameter',  
-             'Subcode', 'BLACKBOXBSD', 'BLACKBOXNTFS', 'BLACKBOXPNP', 'BLACKBOXWINLOGON', 'EXCEPTION_CODE_STR', 'quit:', 
-             'EXCEPTION_PARAMETER1', 'EXCEPTION_STR', 'STACK_COMMAND', 'BUCKET_ID', 'OS_VERSION', 'BUILDLAB_STR',
-             'FAILURE_ID_HASH', 'IMAGE_VERSION', 'Loading unloaded module list', '!Analyze -v', 'analyze -v', 'OSPLATFORM_TYPE:']
+EXCLUDES = ['!Analyze -v', '!analyze', '*    ', '******', '......', '.......................', '.trap', 'Arg2', 'Arg3', 'Arg4', 'BLACKBOXBSD', 'BLACKBOXNTFS', 'BLACKBOXPNP',
+            'BLACKBOXWINLOGON', 'BUCKET_ID', 'BUGCHECK', 'BUILDLAB_STR', 'Bugcheck Analysis', 'Copyright', 'Debug session', 'ERROR_CODE', 'EXCEPTION_CODE_STR',
+            'EXCEPTION_PARAMETER1', 'EXCEPTION_STR', 'Edition', 'ExceptionAddress', 'ExceptionCode', 'ExceptionFlags', 'Executable search', 'FAILURE_ID_HASH', 'IMAGE_VERSION',
+            'KEY', 'Kernel Base', 'Kernel base', 'Key', 'Loading Dump', 'Loading Kernel', 'Loading Unloaded', 'Loading User', 'Loading unloaded module list',
+            'Loading unloadedKernel base', 'Machine', 'Microsoft', 'Mini Kernel Dump', 'NOTE:', 'NatVis', 'NumberParameters', 'OSPLATFORM_TYPE:', 'OS_VERSION',
+            'Opened log file', 'Parameter', 'Product:', 'STACK_COMMAND', 'Some register values', 'Subcode', 'Symbol search', 'System Uptime', 'TRAP', 'Value',
+            'Windows 10', 'analyze -v', 'exr', 'iop', 'kd>', 'quit:', 'r1', 'r10', 'r11', 'r12', 'r13', 'r14', 'r15', 'r16', 'r2', 'r3', 'r4', 'r6', 'r7', 'r8',
+            'r9', 'rax', 'rdx', 'rip', 'scope']
 
 
 
@@ -55,11 +53,9 @@ def paste_file(file_path):
 def process_dump_file(dump_file_path, timeout_seconds=60):
     # Bool to check if the file succeeded, string to check if file had a windbg error
     
-	if not os.path.exists(dump_file_path):
+	if not os.path.exists(dump_file_path) or not dump_file_path.endswith(".dmp"):
 		return False, ''
 
-	if not dump_file_path.endswith(".dmp"):
-		return False, ''
 
 	with tempfile.TemporaryDirectory() as tmpdir:
 		debug_output_file = os.path.join(tmpdir, "debug_output.txt")
@@ -78,7 +74,7 @@ def process_dump_file(dump_file_path, timeout_seconds=60):
 		with open(debug_output_file, 'r') as windbg_output:
       
 			for line in windbg_output:
-				line = line.strip()	 # Remove newlines
+				line = line.strip()
     
 				if len(line) > 100 and ' : ' in line:  # Reduce stack trace
 					tail = line.split(' : ', 1)[1]
@@ -99,14 +95,10 @@ def process_dumps_from_zip(dump_zip_path, max_dump_size_bytes=(1024*1024*100), t
 	global total_dump_no 
 	total_dump_no = 0
  
-	if not os.path.exists(dump_zip_path) or not os.path.isfile(dump_zip_path):
+	if not os.path.exists(dump_zip_path) or not os.path.isfile(dump_zip_path) or not dump_zip_path.endswith(".zip")\
+    or not zipfile.is_zipfile(dump_zip_path):
 		return [], 0
 
-	if not dump_zip_path.endswith(".zip"):
-		return [], 0
-
-	if not zipfile.is_zipfile(dump_zip_path):
-		return [], 0
 
 	dump_result_list = []
  
@@ -209,17 +201,12 @@ class MyClient(discord.Client):
 							print(f"Dump #{dump_no} OK")
 							dumps_ok += 1
 		
-					
-					# Just for proper grammar in the returned message
-					
-					msg_str = "dumps"
-					if dump_no == 1:
-						msg_str = "dump"
+
 
 					if len(dump_results) > 0:
 						paste_file(result_file_path)
       
-				await message.channel.send(f"{dumps_ok}/{total_dump_no} {msg_str} succesfully debuggedd\nResults: {URL}")
+				await message.channel.send(f"{dumps_ok}/{total_dump_no} dump{'s' * dump_no > 1} succesfully debuggedd\nResults: {URL}")
 	
 				total_dump_no = 0
 					
