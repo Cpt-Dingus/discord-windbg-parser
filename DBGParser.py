@@ -152,8 +152,8 @@ def process_dumps_from_zip(dump_zip_path, max_dump_size_bytes=(1024*1024*100), t
 
 # --- Main ---
 
-@bot.hybrid_command(name="debug-files", description="Debugs a .dmp or a .zip containing .d	mp files, posts link with windbg output")
-async def debug_files(ctx, file: discord.Attachment):	
+@bot.hybrid_command(name="debug-file", description="Debugs a .dmp or a .zip containing .dmp files, posts link with windbg output")
+async def debug_file(ctx, file: discord.Attachment):	
 	if len(ctx.message.attachments) == 0:	
 		await ctx.send("No attachments found")	
 	
